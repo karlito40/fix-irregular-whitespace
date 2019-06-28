@@ -1,15 +1,16 @@
 {
 	"name": "fix-irregular-whitespace",
 	"displayName": "Fix Irregular Whitespace",
+	"publisher": "karlito40",
 	"description": "",
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.35.0"
-  },
-  "repository": {
-    "type" : "git",
-    "url" : "https://github.com/karlito40/fix-irregular-whitespace.git"
-  },
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/karlito40/fix-irregular-whitespace.git"
+	},
 	"categories": [
 		"Other"
 	],
