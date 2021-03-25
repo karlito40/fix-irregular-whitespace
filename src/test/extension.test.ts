@@ -14,8 +14,18 @@ import { irregularWhitespaces, getIrregularWhiteSpacesRegex } from '../irregular
 // Defines a Mocha test suite to group tests of similar kind together
 suite("Extension Tests", function () {
 
-    // Defines a Mocha unit test
-    test("Fixing is working for all irregular whitespaces", function() {
+    test('Fixing is working for ALT + SPACE white space', () => {
+        const regex = getIrregularWhiteSpacesRegex();
+
+        const irrText      = "           ";
+        const expectedFixedText = "           ";
+
+        const fixedText = irrText.replace(regex, ' ');
+
+        assert.equal(fixedText, expectedFixedText);
+    });
+    
+    test('Fixing is working for all Eslint irregular whitespaces', function() {
         const textWithIrregularWhiteSpace = `Go${irregularWhitespaces.join('another')}`;
 
         const regex = getIrregularWhiteSpacesRegex();
