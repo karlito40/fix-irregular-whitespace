@@ -1,6 +1,6 @@
 # Fix Irregular Whitespace
 
-Replace all non breaking space from your code with a normal space. 
+Replace all non breaking spaces from your code with a normal space.
 
 ## Features
 
@@ -9,17 +9,17 @@ Replace all non breaking space from your code with a normal space.
 - Add a "Fix irregular whitespace in workspace" command to replace all non breaking space inside a workspace. 
     *(It will rewrite and save your file not currently open in your editor and just update the active ones without saving them)*
 
+## List of Irregular spaces
+
+Handle all the irregular whitespaces from the **Eslint** `no-irregular-whitespace` rule.
+
+https://eslint.org/docs/rules/no-irregular-whitespace
 
 ## Extension Settings
 
 There is no settings available yet.
 
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
 ## Release Notes
-
 
 ### 0.0.1
 
