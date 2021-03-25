@@ -25,3 +25,7 @@ Calling out known issues can help limit users opening duplicate issues against y
 
 Initial release
 
+### 0.0.x
+
+Add support to all irregular whitespaces listed in eslint no-irregular-whitespace rule, as per https://eslint.org/docs/rules/no-irregular-whitespace
+
