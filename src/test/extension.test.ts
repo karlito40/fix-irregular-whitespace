@@ -20,6 +20,9 @@ suite("Extension Tests", function () {
         const irrText      = "           ";
         const expectedFixedText = "           ";
 
+        // making sure ALT + SPACE spaces are there (to lift the doubt of any one reading this)
+        assert.notEqual(irrText, expectedFixedText);
+
         const fixedText = irrText.replace(regex, ' ');
 
         assert.equal(fixedText, expectedFixedText);
