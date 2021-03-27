@@ -2,10 +2,12 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import { promisify } from 'util';
 import globby from 'globby';
+import { getIrregularWhiteSpacesRegex } from './irregularWhitespaces';
 
 const writeFile = promisify(fs.writeFile);
 const readFile = promisify(fs.readFile);
-const irregularWhitespace = ' ';
+
+const irregularWhitespacesMatchRegex = getIrregularWhiteSpacesRegex();
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('Congratulations, your extension "fix-irregular-whitespace" is now active!');
@@ -30,7 +32,7 @@ export function activate(context: vscode.ExtensionContext) {
       return vscode.window.showErrorMessage('No active editor found');
     }
 
-    let workspaceFolders = vscode.workspace.workspaceFolders || [];
+    let workspaceFolders = vscode.workspace.workspaceFolders || [];
     let currentDoc = editor.document;
     const workspaceFolder = workspaceFolders.find(ws => {
       return currentDoc.uri.fsPath.includes(ws.uri.fsPath);
@@ -60,7 +62,7 @@ export function activate(context: vscode.ExtensionContext) {
         return readFile(fsPath, 'utf-8').then(content => {
           let newText = removeIrregular(content);
           if (newText) {
-            return writeFile(fsPath, newText);
+            return writeFile(fsPath, newText as string);
           }
         });
       });
@@ -90,13 +92,13 @@ async function fixIrregularWhitespace (document: vscode.TextDocument) {
     return editor.edit(editBuilder => editBuilder.replace(fullRange, <string> newText));
   }
 
-  return writeFile(document.uri.fsPath, newText);
+  return writeFile(document.uri.fsPath, newText as string);
 }
 
 function removeIrregular (text: string): string | boolean {
-  if(!text.includes(irregularWhitespace)) {
+  if(!irregularWhitespacesMatchRegex.test(text)) {
     return false;
   }
 
-  return text.replace(new RegExp(irregularWhitespace, 'g'), ' '); // irregular whitespace
+  return text.replace(irregularWhitespacesMatchRegex, ' '); // irregular whitespace
 }

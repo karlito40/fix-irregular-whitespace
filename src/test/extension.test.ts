@@ -10,13 +10,40 @@ import * as assert from 'assert';
 // as well as import your extension to test it
 // import * as vscode from 'vscode';
 // import * as myExtension from '../extension';
-
+import { irregularWhitespaces, getIrregularWhiteSpacesRegex } from '../irregularWhitespaces';
 // Defines a Mocha test suite to group tests of similar kind together
 suite("Extension Tests", function () {
 
-    // Defines a Mocha unit test
-    test("Something 1", function() {
-        assert.equal(-1, [1, 2, 3].indexOf(5));
-        assert.equal(-1, [1, 2, 3].indexOf(0));
+    test('Fixing is working for ALT + SPACE white space', () => {
+        const regex = getIrregularWhiteSpacesRegex();
+
+        const irrText      = "           ";
+        const expectedFixedText = "           ";
+
+        // making sure ALT + SPACE spaces are there (to lift the doubt of any one reading this)
+        assert.notEqual(irrText, expectedFixedText);
+
+        const fixedText = irrText.replace(regex, ' ');
+
+        assert.equal(fixedText, expectedFixedText);
+    });
+    
+    test('Fixing is working for all Eslint irregular whitespaces', function() {
+        const textWithIrregularWhiteSpace = `Go${irregularWhitespaces.join('another')}`;
+
+        const regex = getIrregularWhiteSpacesRegex();
+
+        const fixedText = textWithIrregularWhiteSpace.replace(regex, ' ');
+
+        const expectedText = (() => {
+            let text = 'Go';
+            for (let i = 0; i < irregularWhitespaces.length - 1; i++) {
+                text += ` another`; // normal whitespace
+            }
+            text += ' ';
+            return text;
+        })();
+
+        assert.equal(fixedText, expectedText);
     });
 });
