@@ -3,7 +3,7 @@
 	"displayName": "Fix Irregular Whitespace",
 	"publisher": "karlito40",
 	"description": "Replace all non breaking space with a normal space.",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"icon": "assets/icon.png",
 	"engines": {
 		"vscode": "^1.35.0"
