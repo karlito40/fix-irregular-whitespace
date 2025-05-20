@@ -25,13 +25,24 @@
 		"commands": [
 			{
 				"command": "extension.fixIrregularWhitespaceInFile",
-				"title": "Fix irregular whitespace in current file"
+				"title": "Fix Irregular Whitespace in Current File"
 			},
 			{
 				"command": "extension.fixIrregularWhitespaceInWorkspace",
-				"title": "Fix irregular whitespace in workspace"
+				"title": "Fix Irregular Whitespace in Workspace"
 			}
-		]
+		],
+		"configuration": {
+			"title": "Fix Irregular Whitespace",
+			"types": "object",
+			"properties": {
+				"fixIrregularWhitespace.shouldApplyOnSave": {
+					"type": "boolean",
+					"default": true,
+					"description": "Remove irregular whitespace on save"
+				}
+			}
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",

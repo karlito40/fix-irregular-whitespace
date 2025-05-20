@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import { promisify } from 'util';
 import globby from 'globby';
 import { getIrregularWhiteSpacesRegex } from './irregularWhitespaces';
+import { shouldApplyOnSave } from './config';
 
 const writeFile = promisify(fs.writeFile);
 const readFile = promisify(fs.readFile);
@@ -12,8 +13,13 @@ const irregularWhitespacesMatchRegex = getIrregularWhiteSpacesRegex();
 export function activate(context: vscode.ExtensionContext) {
   console.log('Congratulations, your extension "fix-irregular-whitespace" is now active!');
 
-  vscode.workspace.onWillSaveTextDocument(changeEvent => {
-    fixIrregularWhitespace(changeEvent.document);
+  const forAutoSave = vscode.workspace.onWillSaveTextDocument(async (changeEvent) => {
+    if (!shouldApplyOnSave()) {
+      return;
+    }
+
+    const { irregularMatchCount } = await fixIrregularWhitespace(changeEvent.document).then(res => res || { irregularMatchCount: 0 });
+    irregularMatchCount && showIrregularFixMessage(irregularMatchCount);
    });
 
   let forFile = vscode.commands.registerCommand('extension.fixIrregularWhitespaceInFile', async () => {
@@ -21,9 +27,13 @@ export function activate(context: vscode.ExtensionContext) {
     if(!editor) {
       return vscode.window.showErrorMessage('No active editor found');
     }
-
-    await fixIrregularWhitespace(editor.document);
-    vscode.window.showInformationMessage('Irregular whitespace fixed' );
+    
+    const { irregularMatchCount } = await fixIrregularWhitespace(editor.document).then(res => res || { irregularMatchCount: 0 });
+    if (irregularMatchCount) {
+      showIrregularFixMessage(irregularMatchCount)
+    } else {
+      vscode.window.showInformationMessage('No irregular whitespace characters found' );
+    }
   });
 
   let forWorkspace = vscode.commands.registerCommand('extension.fixIrregularWhitespaceInWorkspace', async () => {
@@ -34,7 +44,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     let workspaceFolders = vscode.workspace.workspaceFolders || [];
     let currentDoc = editor.document;
-    const workspaceFolder = workspaceFolders.find(ws => {
+    const workspaceFolder = workspaceFolders.find((ws) => {
       return currentDoc.uri.fsPath.includes(ws.uri.fsPath);
     });
     if(!workspaceFolder) {
@@ -53,52 +63,75 @@ export function activate(context: vscode.ExtensionContext) {
     });
     
     const promises = paths
-      .map(path => workspaceFolder.uri.fsPath + '/'+ path)
-      .map(fsPath =>  {
+      .map((path: string) => workspaceFolder.uri.fsPath + '/'+ path)
+      .map((fsPath: string) =>  {
         if (openDocs[fsPath]) {
-          return fixIrregularWhitespace(openDocs[fsPath]);
+          // TODO: Does not works if the document is in "background" mode
+          // - The document will have no editor
+          return fixIrregularWhitespace(openDocs[fsPath])
+            .then((res) => (res && res.irregularMatchCount) || 0);
         }
 
-        return readFile(fsPath, 'utf-8').then(content => {
-          let newText = removeIrregular(content);
-          if (newText) {
-            return writeFile(fsPath, newText as string);
-          }
+
+        return readFile(fsPath, 'utf-8').then((content: string) => {
+          const { newText, irregularMatchCount } = removeIrregular(content) || { newText: null, irregularMatchCount: 0};
+          return newText 
+            ? writeFile(fsPath, newText).then(() => irregularMatchCount || 0)
+            : 0
         });
       });
 
-    Promise.all(promises).then(() => {
-      vscode.window.showInformationMessage('Irregular whitespace fixed' );
-    });
+    const irregularMatchCounts: number[] = await Promise.all(promises)
+    const irregularMatchCount = irregularMatchCounts.reduce((acc, currentValue) => acc + currentValue, 0)
+    irregularMatchCount && showIrregularFixMessage(irregularMatchCount)
   });
 
-  context.subscriptions.push(forFile);
-  context.subscriptions.push(forWorkspace);
+  context.subscriptions.push(...[
+    forFile, 
+    forWorkspace,
+    forAutoSave
+  ]);
 }
 
 export function deactivate() {}
 
-async function fixIrregularWhitespace (document: vscode.TextDocument) {
-  let newText = removeIrregular(document.getText());
+async function fixIrregularWhitespace (document: vscode.TextDocument): Promise<{ irregularMatchCount: number } | undefined>  {
+  const { newText, irregularMatchCount } = removeIrregular(document.getText()) || {newText: null, irregularMatchCount: 0};
   if(!newText) {
-    return;
+    return undefined;
   }  
 
-  let editor = vscode.window.visibleTextEditors.find(editor => editor.document === document);
+  const editor = vscode.window.visibleTextEditors.find((editor) => editor.document === document);
   if (editor) {
     // https://stackoverflow.com/questions/45203543/vs-code-extension-api-to-get-the-range-of-the-whole-text-of-a-document
-    let invalidRange = new vscode.Range(0, 0, document.lineCount, 0);
-    let fullRange = document.validateRange(invalidRange);
-    return editor.edit(editBuilder => editBuilder.replace(fullRange, <string> newText));
+    const invalidRange = new vscode.Range(0, 0, document.lineCount, 0);
+    const fullRange = document.validateRange(invalidRange);
+    await editor.edit((editBuilder) => editBuilder.replace(fullRange, newText));
+    return {
+      irregularMatchCount: irregularMatchCount || 0
+    }
   }
 
-  return writeFile(document.uri.fsPath, newText as string);
+  await writeFile(document.uri.fsPath, newText);
+  return {
+    irregularMatchCount: irregularMatchCount || 0
+  }
 }
 
-function removeIrregular (text: string): string | boolean {
+function removeIrregular (text: string): { newText: string; irregularMatchCount: number } | undefined {
   if(!irregularWhitespacesMatchRegex.test(text)) {
-    return false;
+    return undefined;
   }
 
-  return text.replace(irregularWhitespacesMatchRegex, ' '); // irregular whitespace
+  const irregularMatchCount = (text.match(irregularWhitespacesMatchRegex) || []).length;
+
+  return {
+    newText: text.replace(irregularWhitespacesMatchRegex, ' '), // irregular whitespace
+    irregularMatchCount
+  }
 }
+
+function showIrregularFixMessage(irregularMatchCount: number) {
+  vscode.window.showInformationMessage(`${irregularMatchCount} irregular whitespace characters replaced`);
+}
+

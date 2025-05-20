@@ -1,13 +1,33 @@
 # Fix Irregular Whitespace
 
-Replace all irregular whitespaces from your code with a normal space.
+Cleans up your code by replacing all unusual whitespace characters with regular spaces
 
 ## Features
 
-- Automatically replace irregular spaces at save time
-- Add a "Fix irregular whitespace in current file" command to replace all irregular spaces at will
-- Add a "Fix irregular whitespace in workspace" command to replace all irregular spaces inside a workspace.
-    *(It will rewrite and save your file not currently open in your editor and just update the active ones without saving them)*
+- Automatically replaces irregular space characters when saving a file
+- Adds a "Fix Irregular Whitespace in Current File" command to manually clean up irregular whitespace in the active file
+- Adds a "Fix Irregular Whitespace in Workspace" command to clean up all files in the workspace:
+  - Files not open in vscode will be rewritten and saved
+  - Others will be updated in the editor without being saved
+
+## Settings
+
+### Enable or disable automatic irregular whitespace cleanup on save
+
+By default, this extension automatically removes all irregular whitespace from your active file when you save. You can disable this behavior in your user settings by unchecking the following option:
+
+```
+Fix Irregular Whitespace: Should Apply On Save
+```
+
+![Screenshot Setting](./assets/applyonsave-setting-screenshot.png)
+
+Alternatively, you can disable it directly in your `vscode settings.json by adding the following line:
+
+``` json
+"fixIrregularWhitespace.shouldApplyOnSave": false
+```
+
 
 ## List of Irregular spaces
 
@@ -22,6 +42,11 @@ For more details about the irregular whitespaces, and a visual usage of the exte
 https://allalmohamedlamine.medium.com/fixing-and-removing-irregular-spaces-984389e17132
 
 ## Release Notes
+
+### 0.2.0
+
+- ✅ Add option to disable automatic cleanup on save 
+- ✅ Provide feedback on how many characters were replaced (if any)
 
 ### 0.1.0
 
